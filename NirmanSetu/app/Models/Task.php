@@ -17,4 +17,16 @@ class Task extends Model
         'status',
         'due_date',
     ];
+
+    // ✅ Add this relationship to Project
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    // ✅ Add this relationship to the User assigned
+    public function assignedTo()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
 }

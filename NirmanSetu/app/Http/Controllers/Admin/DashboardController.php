@@ -8,9 +8,10 @@ use App\Models\User;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\Payment;
+use App\Models\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Notification;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -22,41 +23,39 @@ class DashboardController extends Controller
         $totalTasks = Task::count();
         $totalPayments = Payment::sum('amount');
 
-        // Notifications for the logged-in user
-        $notifications = Notification::where('user_id', Auth::id())
-                            ->latest()
-                            ->take(5)
-                            ->get();
-
-        $unreadCount = Notification::where('user_id', Auth::id())
-                            ->where('is_read', false)
-                            ->count();
-
-        // Monthly payment summary
+        // Monthly Payments Chart (last 6 months)
         $monthlyPayments = Payment::select(
                 DB::raw("DATE_FORMAT(payment_date, '%b %Y') as month"),
                 DB::raw("SUM(amount) as total")
             )
+            ->where('payment_date', '>=', now()->subMonths(6))
             ->groupBy('month')
-            ->orderBy(DB::raw("MIN(payment_date)"))
+            ->orderByRaw("STR_TO_DATE(month, '%b %Y') ASC")
             ->get();
 
         $months = $monthlyPayments->pluck('month');
         $amounts = $monthlyPayments->pluck('total');
 
-        // Latest 5 projects
+        // Recent Projects & Tasks
         $recentProjects = Project::latest()->take(5)->get();
+        $recentTasks = Task::latest()->take(5)->get();
 
-        return view('admin.dashboard', compact(
-            'totalUsers',
-            'totalProjects',
-            'totalTasks',
-            'totalPayments',
-            'months',
-            'amounts',
-            'recentProjects',
-            'notifications',
-            'unreadCount'
-        ));
+        // Notifications (only for logged-in admin)
+        $notifications = Notification::where('user_id', Auth::id())
+                            ->latest()
+                            ->take(5)
+                            ->get();
+
+        return view('admin.dashboard', [
+            'totalUsers' => $totalUsers,
+            'totalProjects' => $totalProjects,
+            'totalTasks' => $totalTasks,
+            'totalPayments' => $totalPayments,
+            'recentProjects' => $recentProjects,
+            'recentTasks' => $recentTasks,
+            'notifications' => $notifications,
+            'months' => $months,
+            'amounts' => $amounts,
+        ]);
     }
 }

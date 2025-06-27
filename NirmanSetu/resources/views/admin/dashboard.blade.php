@@ -1,48 +1,102 @@
 @extends('adminlte::page')
 
-@section('title', 'Dashboard')
+@section('title', 'Admin Dashboard')
 
 @section('content_header')
-    <h1>Dashboard</h1>
+    <h1>Admin Dashboard</h1>
 @stop
 
 @section('content')
 <div class="row">
-    <x-adminlte-info-box title="Total Users" text="{{ $totalUsers }}" icon="fas fa-users" theme="info" />
-    <x-adminlte-info-box title="Total Projects" text="{{ $totalProjects }}" icon="fas fa-folder" theme="success" />
-    <x-adminlte-info-box title="Total Tasks" text="{{ $totalTasks }}" icon="fas fa-tasks" theme="warning" />
-    <x-adminlte-info-box title="Total Payments" text="₹{{ number_format($totalPayments) }}" icon="fas fa-money-bill-wave" theme="primary" />
+    <div class="col-md-3">
+        <x-adminlte-small-box title="Total Users" text="{{ $totalUsers }}" icon="fas fa-users" theme="info" url="#" url-text="More info"/>
+    </div>
+    <div class="col-md-3">
+        <x-adminlte-small-box title="Projects" text="{{ $totalProjects }}" icon="fas fa-project-diagram" theme="primary" url="#" url-text="More info"/>
+    </div>
+    <div class="col-md-3">
+        <x-adminlte-small-box title="Tasks" text="{{ $totalTasks }}" icon="fas fa-tasks" theme="warning" url="#" url-text="More info"/>
+    </div>
+    <div class="col-md-3">
+        <x-adminlte-small-box title="Total Payments" text="₹{{ number_format($totalPayments) }}" icon="fas fa-rupee-sign" theme="success" url="#" url-text="More info"/>
+    </div>
+</div>
+
+{{-- Recent Projects & Tasks --}}
+<div class="row">
+    <div class="col-md-6">
+        <x-adminlte-card title="Recent Projects" theme="primary" icon="fas fa-folder">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th><th>Status</th><th>Start</th><th>End</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentProjects as $project)
+                    <tr>
+                        <td>{{ $project->name }}</td>
+                        <td>{{ $project->status }}</td>
+                        <td>{{ $project->start_date }}</td>
+                        <td>{{ $project->end_date }}</td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="4">No recent projects.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </x-adminlte-card>
+    </div>
+
+    <div class="col-md-6">
+        <x-adminlte-card title="Recent Tasks" theme="warning" icon="fas fa-tasks">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Title</th><th>Status</th><th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentTasks as $task)
+                    <tr>
+                        <td>{{ $task->title }}</td>
+                        <td>{{ $task->status }}</td>
+                        <td>{{ $task->due_date }}</td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="3">No recent tasks.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </x-adminlte-card>
+    </div>
+</div>
+
+{{-- Notifications --}}
+<div class="row">
+    <div class="col-md-12">
+        <x-adminlte-card title="Recent Notifications" theme="info" icon="fas fa-bell">
+            @if($notifications->isEmpty())
+                <p>No notifications yet.</p>
+            @else
+                <ul class="list-group">
+                    @foreach($notifications as $note)
+                        <li class="list-group-item">{{ $note->message }}</li>
+                    @endforeach
+                </ul>
+            @endif
+        </x-adminlte-card>
+    </div>
 </div>
 
 {{-- Chart Section --}}
-<x-adminlte-card title="Monthly Payment Chart" theme="light" icon="fas fa-chart-bar" collapsible>
-    <canvas id="paymentChart" height="100"></canvas>
-</x-adminlte-card>
-
-{{-- Recent Projects --}}
-<x-adminlte-card title="Recent Projects" theme="light" icon="fas fa-project-diagram" collapsible>
-    <ul class="list-group list-group-flush">
-        @forelse($recentProjects as $project)
-            <li class="list-group-item">{{ $project->name }} – {{ $project->created_at->format('d M Y') }}</li>
-        @empty
-            <li class="list-group-item">No recent projects found.</li>
-        @endforelse
-    </ul>
-</x-adminlte-card>
-
-{{-- Notifications --}}
-{{-- Notifications --}}
-<x-adminlte-card title="Notifications" theme="light" icon="fas fa-bell" collapsible>
-    <ul class="list-group list-group-flush">
-        @forelse($notifications as $note)
-            <li class="list-group-item">{{ $note->message }}</li>
-        @empty
-            <li class="list-group-item">No notifications found.</li>
-        @endforelse
-    </ul>
-</x-adminlte-card>
-
-
+<div class="row">
+    <div class="col-md-12">
+        <x-adminlte-card title="Overview: Project Status & Payments" theme="dark" icon="fas fa-chart-bar">
+            <canvas id="paymentChart" height="100"></canvas>
+        </x-adminlte-card>
+    </div>
+</div>
 @stop
 
 @section('js')
@@ -55,8 +109,8 @@
             labels: {!! json_encode($months) !!},
             datasets: [{
                 label: 'Monthly Payments (₹)',
-                backgroundColor: '#4CAF50',
-                borderColor: '#388E3C',
+                backgroundColor: '#28a745',
+                borderColor: '#1e7e34',
                 borderWidth: 1,
                 data: {!! json_encode($amounts) !!}
             }]
