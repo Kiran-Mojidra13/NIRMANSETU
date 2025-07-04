@@ -11,6 +11,12 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+
+    // ✅ Add this:
+    public function projects()
+    {
+        return $this->hasMany(Project::class, 'created_by');
+    }
     protected $fillable = [
         'name',
         'email',

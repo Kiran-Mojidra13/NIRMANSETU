@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -14,11 +16,55 @@ class UserController extends Controller
         return view('admin.profile');
     }
 
+    // ✅ Update Profile
+    public function updateProfile(Request $request)
+    {
+         /** @var \App\Models\User $user */
+    $user = Auth::user();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'profile_photo' => 'nullable|image|max:2048',
+        ]);
+
+        $user->name = $request->name;
+
+        if ($request->hasFile('profile_photo')) {
+            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            $user->profile_photo_path = $path;
+        }
+
+        $user->save();
+
+        return redirect()->back()->with('success', 'Profile updated successfully.');
+    }
+
+    // ✅ Change Password
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+         /** @var \App\Models\User $user */
+    $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return back()->with('success', 'Password changed successfully.');
+    }
+
     // ✅ Logout
     public function logout()
     {
         auth()->logout();
-        return redirect('/'); // Redirect to login or homepage
+        return redirect('/');
     }
 
     // ✅ User List with Search + Pagination

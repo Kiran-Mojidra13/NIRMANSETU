@@ -7,6 +7,13 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\TaskController;
+use App\Http\Controllers\Admin\MaterialController;
+use App\Http\Controllers\Admin\DocumentController;
+use App\Http\Controllers\Admin\BillingController;
+use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\EstimateController;
+
 
 
 
@@ -61,11 +68,36 @@ Route::get('/tasks/{id}/edit', [TaskController::class, 'edit'])->name('tasks.edi
 Route::post('/tasks/{id}', [TaskController::class, 'update'])->name('tasks.update');
 Route::post('/tasks/{id}/delete', [TaskController::class, 'destroy'])->name('tasks.delete');
 
-    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
-    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+// ✅ Inventory management
+Route::get('/inventory', [MaterialController::class, 'index'])->name('inventory.index');
+Route::get('/inventory/create', [MaterialController::class, 'create'])->name('inventory.create');
+Route::post('/inventory', [MaterialController::class, 'store'])->name('inventory.store');
+Route::get('/inventory/{id}/edit', [MaterialController::class, 'edit'])->name('inventory.edit');
+Route::post('/inventory/{id}', [MaterialController::class, 'update'])->name('inventory.update');
+Route::post('/inventory/{id}/delete', [MaterialController::class, 'destroy'])->name('inventory.delete');
+
+// ✅ Document Management
+ Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+Route::get('/documents/{id}/edit', [DocumentController::class, 'edit'])->name('admin.documents.edit');
+Route::put('/documents/{id}', [DocumentController::class, 'update'])->name('admin.documents.update');
+    Route::post('/documents/{id}/delete', [DocumentController::class, 'destroy'])->name('documents.delete');
+
+
+   // ✅ Billing
     Route::get('/billing', [BillingController::class, 'index'])->name('billing.index');
+
+    // ✅ Invoices - download
+    Route::get('/invoice/{id}/download', [InvoiceController::class, 'download'])->name('invoice.download');
+
+    // ✅ Estimates - download
+    Route::get('/estimates/{id}/download', [EstimateController::class, 'download'])->name('estimate.download');
+
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('/settings', [SettingController::class, 'index'])->name('settings');
+    Route::get('/reports/export-pdf', [ReportController::class, 'exportPdf'])->name('reports.exportPdf');
+    Route::get('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
+    //Route::get('/settings', [SettingController::class, 'index'])->name('settings');
 });
 
 
@@ -84,7 +116,9 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
 // Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('admin.profile.update');
 
 // With this
-Route::put('/profile/update', [UserController::class, 'updateProfile'])->name('admin.profile.update');
+Route::put('/admin/profile/update', [UserController::class, 'updateProfile'])->name('admin.profile.update');
+Route::put('/admin/profile/change-password', [UserController::class, 'changePassword'])->name('admin.profile.changePassword');
+
     Route::post('/logout', [UserController::class, 'logout'])->name('admin.logout');
 
     // Notifications
