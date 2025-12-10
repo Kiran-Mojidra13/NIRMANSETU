@@ -1,13 +1,35 @@
 /**
- * We'll load the axios HTTP library which allows us to easily issue requests
- * to our Laravel back-end. This library automatically handles sending the
- * CSRF token as a header based on the value of the "XSRF" token cookie.
+ * Load Axios HTTP library.
+ * Handles XSRF token automatically.
  */
-
 import axios from 'axios';
-window.axios = axios;
 
+window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+/**
+ * Laravel Echo + Pusher setup.
+ * For real-time broadcasting.
+ */
+import Echo from 'laravel-echo';
+
+import Pusher from 'pusher-js'; // ✅ explicitly import Pusher
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+    broadcaster: 'pusher',
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    forceTLS: true,
+    // ✅ Optional: override host/port if using self-hosted websocket server
+    wsHost: import.meta.env.VITE_PUSHER_HOST
+        ? import.meta.env.VITE_PUSHER_HOST
+        : `ws-${import.meta.env.VITE_PUSHER_APP_CLUSTER}.pusher.com`,
+    wsPort: import.meta.env.VITE_PUSHER_PORT ?? 80,
+    wssPort: import.meta.env.VITE_PUSHER_PORT ?? 443,
+    enabledTransports: ['ws', 'wss'],
+});
+
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening

@@ -1,11 +1,17 @@
 <aside class="main-sidebar {{ config('adminlte.classes_sidebar', 'sidebar-dark-primary elevation-4') }}">
 
     {{-- Sidebar brand logo --}}
-    @if(config('adminlte.logo_img_xl'))
-        @include('adminlte::partials.common.brand-logo-xl')
-    @else
-        @include('adminlte::partials.common.brand-logo-xs')
-    @endif
+    <a href="{{ url(config('adminlte.dashboard_url', 'home')) }}" class="brand-link d-flex align-items-center">
+        <img src="{{ asset('storage/images/nirman.png') }}"
+             alt="NirmanSetu Logo"
+             class="brand-image img-circle elevation-3"
+             style="opacity: .9; width: 40px; height: 40px; object-fit: cover;">
+
+        <span class="brand-text font-weight-bold ml-2"
+              style="font-family: 'Poppins', sans-serif; border-radius: 12px; padding: 4px 8px; background: rgba(255,255,255,0.1);">
+            NirmanSetu
+        </span>
+    </a>
 
     {{-- Sidebar menu --}}
     <div class="sidebar">

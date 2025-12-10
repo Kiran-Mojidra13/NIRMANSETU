@@ -366,12 +366,6 @@ return [
         'icon' => 'fas fa-user',
     ],
 
-    // Settings
-    [
-        'text' => 'Settings',
-        'url'  => 'admin/settings',
-        'icon' => 'fas fa-cogs',
-    ],
 
     // Logout (you can use a custom view or form as needed)
     [

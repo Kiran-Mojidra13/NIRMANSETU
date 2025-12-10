@@ -16,4 +16,12 @@ class Project extends Model
         'end_date',
         'created_by',
     ];
+public function contractor()
+{
+    return $this->belongsTo(User::class, 'contractor_id');
+}
+
+    // app/Models/Project.php
+public function tasks() { return $this->hasMany(Task::class); }
+
 }

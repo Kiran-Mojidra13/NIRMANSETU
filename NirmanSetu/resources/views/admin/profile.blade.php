@@ -18,8 +18,9 @@
         <div class="col-md-6">
             <x-adminlte-card title="Update Profile" theme="primary" icon="fas fa-user-edit">
                 <form method="POST" action="{{ route('admin.profile.update') }}" enctype="multipart/form-data">
-                    @csrf
-                    @method('PUT')
+    @csrf
+    @method('PUT')
+
 
                     {{-- Name --}}
                     <x-adminlte-input name="name" label="Name" value="{{ old('name', Auth::user()->name) }}" required />
@@ -50,8 +51,9 @@
         <div class="col-md-6">
             <x-adminlte-card title="Change Password" theme="warning" icon="fas fa-key">
                 <form method="POST" action="{{ route('admin.profile.changePassword') }}">
-                    @csrf
-                    @method('PUT')
+    @csrf
+    @method('PUT')
+
 
                     <x-adminlte-input name="current_password" label="Current Password" type="password" required />
                     <x-adminlte-input name="new_password" label="New Password" type="password" required />

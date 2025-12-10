@@ -13,12 +13,26 @@ use App\Http\Controllers\Admin\BillingController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\EstimateController;
-
-
-
-
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\DailyProgressPhotoController;
+use App\Http\Controllers\ContractorDashboardController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Contractor\ContractorProjectController;
+use App\Http\Controllers\Contractor\ContractorTaskController;
+use App\Http\Controllers\Contractor\DailyProgressController;
+// site images
+//use App\Http\Controllers\ImageController;
+use App\Http\Controllers\Contractor\SiteImageController;
+use App\Http\Controllers\Contractor\ProfileController as ContractorProfileController;
 
+//client
+use App\Http\Controllers\Client\DashboardController as ClientDashboardController;
+use App\Http\Controllers\Client\ProjectController as ClientProjectController;
+use App\Http\Controllers\Client\BillsController as ClientBillsController;
+use App\Http\Controllers\Client\DocumentController as ClientDocumentsController;
+use App\Http\Controllers\Client\DailyUpdatesController as ClientDailyUpdatesController;
+use App\Http\Controllers\Client\ProfileController as ClientProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +44,26 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+
+Route::get('/login', [AuthenticatedSessionController::class, 'create'])
+    ->middleware('guest')
+    ->name('login');
+
+Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+    ->middleware('guest');
+
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('logout');
+
+    Route::get('/force-logout', function() {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/login');
+});
+
+
 // ✅ Admin login routes - PUBLIC (before auth middleware)
 //Route::get('admin/login', [LoginController::class, 'showLoginForm'])->name('admin.login');
 //Route::post('admin/login', [LoginController::class, 'login'])->name('admin.login.submit');
@@ -38,8 +72,10 @@ Route::get('/', function () {
 Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
-    Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
-    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+    Route::put('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile/change-password', [UserController::class, 'changePassword'])->name('profile.changePassword');
+    Route::match(['get', 'post'], '/logout', [UserController::class, 'logout'])->name('logout');
+
 
     // ✅ Manage Users
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -99,8 +135,99 @@ Route::put('/documents/{id}', [DocumentController::class, 'update'])->name('admi
     Route::get('/reports/export-excel', [ReportController::class, 'exportExcel'])->name('reports.exportExcel');
     //Route::get('/settings', [SettingController::class, 'index'])->name('settings');
 });
+/*Route::prefix('engineer')->middleware(['auth', 'engineer'])->name('engineer.')->group(function () {
+    Route::get('/engineer/dashboard', [EngineerDashboardController::class, 'index'])
+    ->name('engineer.dashboard')
+    ->middleware(['auth']); // Add your custom middleware if needed
+
+});*/
+// Engineer routes
 
 
+/*Route::prefix('contractor')->middleware(['auth', 'engineer'])->name('contractor.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('contractor.dashboard');
+    })->name('dashboard');*/
+
+Route::middleware(['auth', 'engineer'])->prefix('contractor')->name('contractor.')->group(function () {
+    Route::get('/dashboard', [ContractorDashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/projects', function () {
+        return view('contractor.projects');
+    })->name('projects');
+    Route::get('/projects', [ContractorProjectController::class, 'index'])->name('projects');
+
+    Route::get('/tasks', [ContractorTaskController::class, 'index'])->name('assigned-tasks');
+
+Route::get('/daily-updates', [DailyProgressController::class, 'index'])->name('daily-updates');
+Route::get('/daily-updates/create', [DailyProgressController::class, 'create'])->name('daily_update.create');
+Route::post('/daily-updates/store', [DailyProgressController::class, 'store'])->name('daily_update.store');
+Route::put('/contractor/daily-updates/{id}', [DailyProgressController::class, 'update'])->name('daily-updates.update');
+Route::delete('/contractor/daily-updates/{id}', [DailyProgressController::class, 'destroy'])->name('daily-updates.destroy');
+
+   // ✅ Site Images
+    Route::get('/site-images', [SiteImageController::class, 'index'])->name('site_images');
+    Route::post('/site-images/{id}', [SiteImageController::class, 'store'])->name('site_images.store');
+    Route::delete('/site-images/{id}', [SiteImageController::class, 'destroy'])->name('site_images.destroy');
+
+    // Route::get('/calendar', function () {
+    //     return view('contractor.calendar');
+    // })->name('calendar');
+    // calender
+    // Calendar page
+Route::get('/calendar', [\App\Http\Controllers\Contractor\CalendarController::class, 'index'])
+    ->name('calendar');
+
+// Events feed for FullCalendar (JSON)
+Route::get('/calendar/events', [\App\Http\Controllers\Contractor\CalendarController::class, 'events'])
+    ->name('calendar.events');
+
+// Contractor Site Visits CRUD
+Route::post('/site-visits', [\App\Http\Controllers\Contractor\CalendarController::class, 'storeVisit'])
+    ->name('site_visits.store');
+Route::put('/site-visits/{id}', [\App\Http\Controllers\Contractor\CalendarController::class, 'updateVisit'])
+    ->name('site_visits.update');
+Route::delete('/site-visits/{id}', [\App\Http\Controllers\Contractor\CalendarController::class, 'destroyVisit'])
+    ->name('site_visits.destroy');
+
+
+    //profile
+Route::get('/profile', [ContractorProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ContractorProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ContractorProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::put('/profile/change-password', [ContractorProfileController::class, 'changePassword'])
+        ->name('profile.change_password');
+
+});
+
+
+
+
+
+Route::middleware(['auth', 'role:client,customer'])->prefix('client')->name('client.')->group(function () {
+    Route::get('/dashboard', [ClientDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/projects', [ClientProjectController::class, 'index'])->name('projects'); // <-- fixed
+    //Route::get('/bills', [ClientDashboardController::class, 'bills'])->name('bills');
+    Route::get('/bills', [ClientBillsController::class,'index'])->name('bills');
+    //Route::get('/get-razorpay-order/{billId}', [ClientBillsController::class,'getRazorpayOrder']);
+    Route::post('/bills/{bill}/mark-paid', [ClientBillsController::class, 'markAsPaid'])->name('bills.markPaid');
+    Route::get('/documents', [ClientDocumentsController::class, 'index'])->name('documents');
+    Route::get('/daily_updates', [ClientDailyUpdatesController::class, 'index'])->name('daily_updates');
+    Route::get('/profile', [ClientProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [ClientProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/change-password', [ClientProfileController::class, 'changePassword'])->name('profile.change_password');
+        Route::delete('/profile', [ClientProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+
+
+
+
+// Route::prefix('client')->middleware(['auth', 'client'])->name('client.')->group(function () {
+//     Route::get('/dashboard', function () {
+//         return view('client.dashboard');
+//     })->name('dashboard');
+// });
 // ✅ Regular user dashboard
 /*Route::get('/dashboard', function () {
     return view('dashboard');
@@ -116,9 +243,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
 // Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('admin.profile.update');
 
 // With this
-Route::put('/admin/profile/update', [UserController::class, 'updateProfile'])->name('admin.profile.update');
-Route::put('/admin/profile/change-password', [UserController::class, 'changePassword'])->name('admin.profile.changePassword');
-
+Route::put('/profile/update', [UserController::class, 'updateProfile'])->name('admin.profile.update');
     Route::post('/logout', [UserController::class, 'logout'])->name('admin.logout');
 
     // Notifications

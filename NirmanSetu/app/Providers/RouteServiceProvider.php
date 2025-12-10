@@ -28,7 +28,7 @@ class RouteServiceProvider extends ServiceProvider
 
         return match ($user->role) {
             'admin' => '/admin/dashboard',
-            'engineer' => '/engineer/dashboard',
+            'engineer' => '/contractor/dashboard', // 👈 change this line
             'manager' => '/manager/dashboard',
             default => self::HOME,
         };

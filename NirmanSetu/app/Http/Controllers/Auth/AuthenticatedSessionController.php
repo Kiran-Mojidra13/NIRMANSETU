@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,30 +22,35 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
+    public function store(LoginRequest $request): RedirectResponse
+    {
+        // This uses your custom LoginRequest logic
+        $request->authenticate();
 
-public function store(LoginRequest $request): RedirectResponse
-{
-    $request->authenticate();
-    $request->session()->regenerate();
+        // Regenerate session to prevent session fixation
+        $request->session()->regenerate();
 
-    $user = Auth::user();
+        $user = Auth::user();
 
-    // ✅ Redirect based on user role
-    switch ($user->role) {
-        case 'admin':
-            return redirect()->route('admin.dashboard');
+        // ✅ Redirect based on user role
+        switch ($user->role) {
+            case 'admin':
+                return redirect()->route('admin.dashboard');
 
-        case 'engineer':
-            return redirect()->route('engineer.dashboard');
+            case 'engineer':
+                return redirect()->route('contractor.dashboard');
 
-        case 'customer':
-            return redirect()->route('customer.dashboard');
+            case 'client':
+            case 'customer':
+                return redirect()->route('client.dashboard');
 
-        default:
-            Auth::logout();
-            return redirect('/login')->withErrors(['email' => 'Unauthorized role.']);
+            default:
+                Auth::logout();
+                return redirect()->route('login')->withErrors([
+                    'email' => 'Unauthorized role.',
+                ]);
+        }
     }
-}
 
     /**
      * Destroy an authenticated session.
